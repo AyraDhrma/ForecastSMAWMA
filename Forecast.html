@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Rantai Pasok</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .styled-table {
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            min-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .styled-table thead tr {
+            background-color: #009879;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
+
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #009879;
+        }
+
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #009879;
+        }
+
+        .styled-input {
+            text-align: center;
+            width: 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        <div class="container">
+            <br><br>
+            <h4><b>Prediksi Penjualan</b></h4>
+            <div class="row">
+                <div>
+                    <div class="row">
+                        <div>
+                            <label for="periode" class="form-label">Masukkan Periode</label>
+                            <input style="width: 10%;" type="text" class="form-control styled-input" id="periode"
+                                value="4" required>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div style="margin-top: 20px;">
+                            <button type="button" class="btn btn-primary" id="btnAddRow" data-bs-toggle="modal"
+                                data-bs-target="#modalAddRow">Tambah Data Penjualan</button>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button type="button" class="btn btn-secondary" id="btnClearData">Reset
+                                Data</button>
+                        </div>
+                    </div>
+                    <br><br>
+                    <hr style="width: 45%;">
+                    <div>
+                        <h5><b>Simple Moving Average</b></h5>
+                        <table id="simpMovingTable" class="styled-table">
+                            <thead class="table-primary">
+                                <th>Tahun</th>
+                                <th>Penjualan (Juta)</th>
+                                <th>Forecast</th>
+                                <th>Absolute Error</th>
+                                <th>Squared Error</th>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                            <tfoot class="table-primary">
+                                <tr>
+                                    <th colspan="3">Jumlah</th>
+                                    <th><label id="sumAbsoluteErrorSMA"></label></th>
+                                    <th><label id="sumError2SMA"></label></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="3">Rata-rata(Mean)</th>
+                                    <th><label id="meanAbsoluteErrorSMA"></label></th>
+                                    <th><label id="meanError2SMA"></label></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div>
+                        <h5><b>Wighted Moving Average</b></h5>
+                        <table id="weightMovingTable" class="styled-table">
+                            <thead class="table-warning">
+                                <th>Tahun</th>
+                                <th>Penjualan (Juta)</th>
+                                <th>Forecast</th>
+                                <th>Absolute Error</th>
+                                <th>Squared Error</th>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                            <tfoot class="table-warning">
+                                <tr>
+                                    <th colspan="3">Jumlah</th>
+                                    <th><label id="sumAbsoluteErrorWMA"></label></th>
+                                    <th><label id="sumError2WMA"></label></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="3">Rata-rata(Mean)</th>
+                                    <th><label id="meanAbsoluteErrorWMA"></label></th>
+                                    <th><label id="meanError2WMA"></label></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </center>
+</body>
+
+<!-- Modal -->
+<div class="modal fade" id="modalAddRow" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Masukkan Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAdd">
+                    <div class="mb-3">
+                        <label for="tahun" class="form-label">Tahun Penjualan</label>
+                        <select class="form-control" id="tahun" name="tahun" required>
+                            <option value="">Pilih Tahun</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="penjualan" class="form-label">Penjualan(Juta)</label>
+                        <input type="text" class="form-control" id="penjualan" placeholder="Penjualan (Juta)" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSave">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modal -->
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+        const yearSelect = document.getElementById('tahun');
+
+        function populateYearSelect() {
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= currentYear - 40; year--) {
+                const option = document.createElement('option');
+                option.textContent = year;
+                option.value = year;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        populateYearSelect();
+
+        function simpleMovingAverage() {
+            var periode = $('#periode').val();
+            var data = JSON.parse(sessionStorage.getItem('data'));
+
+            if (data !== null) {
+                var tahun = [];
+                var penjualan = [];
+                data.forEach(val => {
+                    var newData = val.split(';;');
+                    tahun.push(newData[0]);
+                    penjualan.push(newData[1]);
+                })
+
+                var html = '';
+                var forecast = 0;
+                var error = 0;
+                var absolute_error = 0;
+                var error2 = 0;
+                var x = 1;
+                var start = (x - 1);
+                var end = periode;
+                var sumAbsoluteErrorSMA = 0;
+                var sumError2SMA = 0;
+                for (let i = 0; i < data.length; i++) {
+                    var xtahun = tahun[i];
+                    var xpenjualan = parseFloat(penjualan[i]);
+                    if (x > periode) {
+                        // forecast
+                        var xforecast = 0;
+                        for (let xx = start; xx < end; xx++) {
+                            xforecast += parseInt(penjualan[xx]);
+                        }
+                        forecast = parseFloat(xforecast / periode);
+                        // forecast
+
+                        // error
+                        error = parseFloat(xpenjualan - forecast);
+                        // error
+
+                        // absolute error
+                        absolute_error = parseFloat(Math.abs(error));
+                        // absolute error
+
+                        // error2
+                        error2 = parseFloat(absolute_error * absolute_error);
+                        // error2
+
+                        sumAbsoluteErrorSMA += absolute_error;
+                        sumError2SMA += error2;
+
+                        start++;
+                        end++;
+                    } else {
+                        forecast = 0;
+                        error = 0;
+                        absolute_error = 0;
+                        error2 = 0;
+
+                        sumAbsoluteErrorSMA += 0;
+                        sumError2SMA += 0;
+                    }
+                    html += `
+            <tr>
+              <td>`+ xtahun + `</td>
+              <td>`+ xpenjualan + `</td>
+              <td>`+ parseFloat(forecast).toFixed(2) + `</td>
+              <td>`+ parseFloat(absolute_error).toFixed(2) + `</td>
+              <td>`+ parseFloat(error2).toFixed(2) + `</td>
+            </tr>
+          `;
+                    x++;
+                }
+
+                $('#simpMovingTable tbody').html(html);
+                $('#simpMovingTable tfoot #sumAbsoluteErrorSMA').text(parseFloat(sumAbsoluteErrorSMA).toFixed(2));
+                $('#simpMovingTable tfoot #sumError2SMA').text(parseFloat(sumError2SMA).toFixed(2));
+
+                var row = $('#simpMovingTable tbody tr').length;
+                var bagi = row - periode;
+                var MAE = (sumAbsoluteErrorSMA / bagi);
+                var MSE = (sumError2SMA / bagi);
+                $('#simpMovingTable tfoot #meanAbsoluteErrorSMA').text(parseFloat(MAE).toFixed(2))
+                $('#simpMovingTable tfoot #meanError2SMA').text(parseFloat(MSE).toFixed(2))
+            }
+        }
+        simpleMovingAverage()
+
+        function weightedMovingAverage() {
+            var periode = $('#periode').val();
+            var data = JSON.parse(sessionStorage.getItem('data'));
+
+            if (data !== null) {
+                var tahun = [];
+                var penjualan = [];
+                data.forEach(val => {
+                    var newData = val.split(';;');
+                    tahun.push(newData[0]);
+                    penjualan.push(newData[1]);
+                })
+
+                var html = '';
+                var forecast = 0;
+                var error = 0;
+                var absolute_error = 0;
+                var error2 = 0;
+                var x = 1;
+                var start = (x - 1);
+                var end = periode;
+                var sumAbsoluteErrorWMA = 0;
+                var sumError2WMA = 0;
+                for (let i = 0; i < data.length; i++) {
+                    var xtahun = tahun[i];
+                    var xpenjualan = parseFloat(penjualan[i]);
+                    if (x > periode) {
+                        // forecast
+                        var xforecast = 0;
+                        var counting = 1;
+                        var pembagi = 0;
+                        for (let xx = start; xx < end; xx++) {
+                            var kali = parseInt(penjualan[xx]) * counting;
+                            xforecast += kali;
+                            pembagi += counting;
+                            counting++;
+                        }
+                        forecast = parseFloat(xforecast / pembagi);
+                        // forecast
+
+                        // error
+                        error = parseFloat(xpenjualan - forecast);
+                        // error
+
+                        // absolute error
+                        absolute_error = parseFloat(Math.abs(error));
+                        // absolute error
+
+                        // error2
+                        error2 = parseFloat(absolute_error * absolute_error);
+                        // error2
+
+                        sumAbsoluteErrorWMA += absolute_error;
+                        sumError2WMA += error2;
+
+                        start++;
+                        end++;
+                    } else {
+                        forecast = 0;
+                        error = 0;
+                        absolute_error = 0;
+                        error2 = 0;
+                    }
+                    html += `
+            <tr>
+              <td>`+ xtahun + `</td>
+              <td>`+ xpenjualan + `</td>
+              <td>`+ parseFloat(forecast).toFixed(2) + `</td>
+              <td>`+ parseFloat(absolute_error).toFixed(2) + `</td>
+              <td>`+ parseFloat(error2).toFixed(2) + `</td>
+            </tr>
+          `;
+                    x++;
+                }
+
+                $('#weightMovingTable tbody').html(html);
+                $('#weightMovingTable tfoot #sumAbsoluteErrorWMA').text(parseFloat(sumAbsoluteErrorWMA).toFixed(2));
+                $('#weightMovingTable tfoot #sumError2WMA').text(parseFloat(sumError2WMA).toFixed(2));
+
+                var row = $('#weightMovingTable tbody tr').length;
+                var bagi = row - periode;
+                var MAE = (sumAbsoluteErrorWMA / bagi);
+                var MSE = (sumError2WMA / bagi);
+                $('#weightMovingTable tfoot #meanAbsoluteErrorWMA').text(parseFloat(MAE).toFixed(2))
+                $('#weightMovingTable tfoot #meanError2WMA').text(parseFloat(MSE).toFixed(2))
+            }
+        }
+        weightedMovingAverage()
+
+        $('#btnSave').on('click', function () {
+            var tahun = $('#formAdd #tahun').val();
+            var penjualan = $('#formAdd #penjualan').val();
+
+            var arr = [];
+            var arr_data = JSON.parse(sessionStorage.getItem('data'));
+            if (arr_data !== null) {
+                arr_data.forEach(val => {
+                    arr.push(val);
+                });
+            }
+            var str = (tahun + ';;' + penjualan);
+            arr.push(str);
+            sessionStorage.removeItem('data');
+            sessionStorage.setItem('data', JSON.stringify(arr));
+
+            $('#modalAddRow').modal('hide')
+            document.getElementById('penjualan').value = '';
+            simpleMovingAverage()
+            weightedMovingAverage()
+        })
+
+        $('#periode').on('keyup', function () {
+            simpleMovingAverage()
+            weightedMovingAverage()
+        })
+
+        $('#btnClearData').on('click', function () {
+            sessionStorage.clear();
+            location.reload();
+        })
+    })
+</script>
+
+</html>
